@@ -1,22 +1,13 @@
-class badRequest extends Error {
-	constructor( message ) {
-		super( message );
-	}
-}
-class invalidArgument extends badRequest {
-	constructor( message ) {
-		super( "Invalid argument :: " + message );
-	}
-}
-
-/************************/
-
 const express        = require( "express" );
 const router         = new express.Router();
 
 const Datapoint      = require( "./Datapoint" );
 const Role           = require( "./Role" );
 const ContentHandler = require( "./ContentHandler" );
+
+const ROLES = [ 'infected', 'helpers' ];
+
+const { invalidArgument, badRequest } = require( './errors.js' );
 
 var contentHandler, config;
 
@@ -58,26 +49,43 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 				}
 			}
 
-			if (typeof body.id != "undefined")       throw new InvalidArgument( "Invalid argument :: body.role is disallowed on create" );
+			if (ROLES.indexOf( body.role ) == -1)
+				throw new InvalidArgument( "body.role must be enum (helpers|infected)" );
+
+
+			if (typeof body.id != "undefined")
+				throw new InvalidArgument( "body.id is disallowed on create" );
 			
 	
-			if (typeof body.name != "string")        throw new invalidArgument( "body.name is required and must be typeof string" );
+			if (typeof body.name != "string")
+				throw new invalidArgument( "body.name is required and must be typeof string" );
 
 			
-			if (typeof body.summary != "string")     throw new invalidArgument( "body.summary is required and must be typeof string" );
+			if (typeof body.summary != "string")
+				throw new invalidArgument( "body.summary is required and must be typeof string" );
 			
 			
 			if (body.radius != null && typeof body.radius != "number")
 				throw new invalidArgument( "body.radius must be typeof number" );
 
 
-			if (typeof body.location == "undefined") throw new InvalidArgument( "body.location is required on create" );
-
-			if (!Array.isArray( body.location ))     throw new InvalidArgument( "body.location must be array" );
+			if (typeof body.location == "object") {
+				if (!Array.isArray( body.location )) {
+					if (body.location.lan && body.location.lon) {
+						body.location = [ body.location.lan, body.location.lon ]; 
+					} else {
+						throw new InvalidArgument( "body.location must be array or object" );
+					}
+				}
+			} else {
+				throw new InvalidArgument( "body.location is required and must be array or object" );
+			}
 			
 			if (body.location.length != 2)           throw new InvalidArgument( "body.location must be .length==2 array" );
+			if (typeof body.location[0] != "number") throw new InvalidArgument( "body.location[(0|lat)] must be typeof number" );
+			if (typeof body.location[1] != "number") throw new InvalidArgument( "body.location[(1|lon)] must be typeof number" );
 
-			body.id = body.location.join( ";" );
+			body.id = body.location[0] + ";" + body.location[1];
 
 
 			resolve( body );

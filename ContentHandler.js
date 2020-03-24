@@ -23,9 +23,9 @@ class DBHandler {
 		this.db = new sqlite3.Database( config.file, err => {
 			if (err) {
 				this.error = err;
-				console.error( err.message );
+				console.error( "DBHandler ::", err.message );
 			} else {
-				console.log( 'Connected to the chinook database.' );
+				console.log( "DBHandler :: Connected to the chinook database." );
 			}
 		});
 	}
@@ -48,7 +48,7 @@ class DBHandler {
 				`, err => {
 					if (err) return reject( err );
 
-					console.log( "sqlite3 initialized!" );
+					console.log( "DBHandler :: sqlite3 initialized!" );
 
 					resolve( );
 				});
@@ -81,7 +81,7 @@ class DBHandler {
 		}).then(function( rows ){
 			return rows;
 		}).catch(err => {
-			console.error( sql, attrs, err );
+			console.error( "DBHandler.get() ::", sql, attrs, err );
 			return null;
 		});
 	}
@@ -116,7 +116,7 @@ class ContentHandler {
 				try {
 					dp = new Datapoint( dp );
 					dps[ dp.id ] = dp;
-				} catch( e ) { console.error(e); }
+				} catch( e ) { console.error( "ContentHandler.getDatapoints() ::", where, e ); }
 			});
 			return dps;
 		});
