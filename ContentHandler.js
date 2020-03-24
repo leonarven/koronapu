@@ -19,30 +19,24 @@ var columns = "id,passhash,role,name,summary,radius".split( "," );
 class DBHandler {
 	constructor( config ) {
 		this.config = config;
-
-		this.error  = null;
-
-		this.db = new sqlite3.Database( config.file, err => {
-			if (err) {
-				this.error = err;
-				console.error( "DBHandler ::", err );
-			} else {
-				console.log( "DBHandler :: Connected to the chinook database." );
-			}
-		});
+		this.db     = null;
 	}
 
 	init( ) {
 		return new Promise(( resolve, reject ) => {
-			fs.readFile( this.config.schema_file, ( err, schema ) => {
-				if (err) return reject( err );
+			this.db = new sqlite3.Database( this.config.file, err => {
+				if (err) return reject( err );	
+				console.log( "DBHandler.init() :: Connected to database" );
 
-				this.db.run( schema.toString(), err => {
+				fs.readFile( this.config.schema_file, ( err, schema ) => {
 					if (err) return reject( err );
 
-					console.log( "DBHandler.init() :: sqlite3 initialized!" );
+					this.db.run( schema.toString(), err => {
+						if (err) return reject( err );
+						console.log( "DBHandler.init() :: sqlite3 initialized!" );
 
-					resolve( );
+						resolve( );
+					});
 				});
 			});
 		});
