@@ -39,5 +39,6 @@ API.init( config ).then(() => {
 		console.log( "SYSTEM :: HTTP server started, port:", config.http.port );
 	});
 }).catch(err => {
-	console.error( "SYSTEM :: Failed to initiate API ::", err );
+	console.error( "SYSTEM :: Failed to initiate API" );
+	console.error( err );
 });

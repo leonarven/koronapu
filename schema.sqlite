@@ -1,9 +1,12 @@
 CREATE TABLE IF NOT EXISTS datapoints (
-    id          text PRIMARY KEY,
-    passhash    text NOT NULL,
-    role        text NOT NULL,
-    name        text NOT NULL,
-    summary     text NOT NULL,
-    description text NOT NULL DEFAULT '',
-    radius      integer
+	id          text PRIMARY KEY,
+	passhash    text NOT NULL,
+	role        text NOT NULL,
+	name        text NOT NULL,
+	summary     text NOT NULL,
+	description text NOT NULL DEFAULT '',
+	radius      integer,
+	created_at  text NOT NULL DEFAULT (date('now')),
+	updated_at  text NOT NULL DEFAULT (date('now')),
+	deleted_at  text
 );

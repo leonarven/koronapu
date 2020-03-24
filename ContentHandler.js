@@ -1,3 +1,5 @@
+const fs        = require( "fs" );
+
 const Datapoint = require( "./Datapoint" );
 const Role      = require( "./Role" );
 const sqlite3   = require( "sqlite3" ).verbose();
@@ -23,7 +25,7 @@ class DBHandler {
 		this.db = new sqlite3.Database( config.file, err => {
 			if (err) {
 				this.error = err;
-				console.error( "DBHandler ::", err.message );
+				console.error( "DBHandler ::", err );
 			} else {
 				console.log( "DBHandler :: Connected to the chinook database." );
 			}
@@ -32,23 +34,13 @@ class DBHandler {
 
 	init( ) {
 		return new Promise(( resolve, reject ) => {
-			this.db.run( 'DROP TABLE IF EXISTS datapoints', err => {
+			fs.readFile( this.config.schema_file, ( err, schema ) => {
 				if (err) return reject( err );
-		
-				this.db.run(`
-					CREATE TABLE IF NOT EXISTS datapoints (
-						id          text PRIMARY KEY,
-						passhash    text NOT NULL,
-						role        text NOT NULL,
-						name        text NOT NULL,
-						summary     text NOT NULL,
-						description text NOT NULL DEFAULT '',
-						radius      integer
-					);
-				`, err => {
+
+				this.db.run( schema.toString(), err => {
 					if (err) return reject( err );
 
-					console.log( "DBHandler :: sqlite3 initialized!" );
+					console.log( "DBHandler.init() :: sqlite3 initialized!" );
 
 					resolve( );
 				});
