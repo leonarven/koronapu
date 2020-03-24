@@ -75,7 +75,7 @@ router.get([ "/datapoints.json", "/helpers.json", "/infected.json" ], (req, res)
 
 
 // Uuden luominen
-router.post([ "/helpers.json", "infected.json" ], (req, res) => {
+router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 	new Promise(( resolve, reject) => {
 		try {
 			var body = req.body || {};
@@ -97,7 +97,7 @@ router.post([ "/helpers.json", "infected.json" ], (req, res) => {
 			if (typeof body.summary != "string")     throw new invalidArgument( "body.summary is required and must be typeof string" );
 			
 			
-			if (body.radius != null && typeof body.summary != "radius")
+			if (body.radius != null && typeof body.radius != "number")
 				throw new invalidArgument( "body.radius must be typeof number" );
 
 
@@ -120,8 +120,13 @@ router.post([ "/helpers.json", "infected.json" ], (req, res) => {
 
 		return contentHandler.postDatapoint( dp ).then( result => {
 			send( req, res, result );
+		}).catch( err => {
+			if (err.code == 'SQLITE_CONSTRAINT') {
+				throw new badRequest( "body.location is already in use" );
+			}
+			throw err;
 		});
-	}).catch( err => sendErr( req, res, err ));
+	}).catch(err => sendErr( req, res, err ));
 });
 
 

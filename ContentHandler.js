@@ -64,7 +64,6 @@ class DBHandler {
 			if (where) {
 				if (table == "datapoints") {
 					for (var k of columns) {
-						console.log(k);
 						if (where[k]) {
 							wheres.push( k + " = $" + k );
 							attrs["$"+k] = where[k];
@@ -135,7 +134,9 @@ class ContentHandler {
 				`, attrs, err => {
 					if (err) return reject( err );
 				
-					resolve( "hereiam" );
+					this.getDatapoints({
+						id: dp.id
+					}).then( resolve ).catch( reject );
 				});
 			} catch (e) { reject(e) };
 		});
