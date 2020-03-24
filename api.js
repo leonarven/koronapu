@@ -64,7 +64,11 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 			if (typeof body.summary != "string")
 				throw new invalidArgument( "body.summary is required and must be typeof string" );
 			
-			
+		
+			if (body.description != null && typeof body.description != "string")
+				throw new invalidArgument( "body.description must be typeof string" );
+
+
 			if (body.radius != null && typeof body.radius != "number")
 				throw new invalidArgument( "body.radius must be typeof number" );
 
@@ -85,8 +89,11 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 			if (typeof body.location[0] != "number") throw new InvalidArgument( "body.location[(0|lat)] must be typeof number" );
 			if (typeof body.location[1] != "number") throw new InvalidArgument( "body.location[(1|lon)] must be typeof number" );
 
-			body.id = body.location[0] + ";" + body.location[1];
 
+
+			body.id = body.location[0] + ";" + body.location[1];
+			body.description = body.description || '';
+			body.radius = body.radius || 1000;
 
 			resolve( body );
 		} catch(e) {

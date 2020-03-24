@@ -4,9 +4,9 @@ class Datapoint {
 		this.id          = json.id;
 
 		this.name        = json.name;
-		this.summary     = json.summary     || '';
-		this.description = json.description || '';
-		this.radius      = json.radius      || 1000;
+		this.summary     = json.summary;
+		this.description = json.description;
+		this.radius      = json.radius;
 
 		// passhash ei kuulu tänne, sitä käsitellään vain autentikaation yhteydessä
 
