@@ -64,8 +64,12 @@ router.get([ "/datapoints.json", "/helpers.json", "/infected.json" ], (req, res)
 	var where = {};
 	if (req.query.role) where.role = req.query.role;
 
-	contentHandler.getDatapoints( where ).then( json => {
-		send( req, res, json );
+	contentHandler.getDatapoints( where ).then( datapoints => {
+		var result = {};
+
+		for (var id in datapoints) result[ id ] = datapoints[ id ].toJSON();
+	
+		send( req, res, result );
 	}).catch( err => {
 		console.error( err );
 		res.status( 500 );
@@ -119,7 +123,7 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 		var dp = new Datapoint( body );
 
 		return contentHandler.postDatapoint( dp ).then( result => {
-			send( req, res, result );
+			send( req, res, result.toJSON() );
 		}).catch( err => {
 			if (err.code == 'SQLITE_CONSTRAINT') {
 				throw new badRequest( "body.location is already in use" );
@@ -153,6 +157,7 @@ function sendErr( req, res, err, status ) {
 
 	console.error( "ERROR :: ", status, "::", err );
 
+	req.query = {};
 	send( req, res, err );
 }
 
@@ -162,7 +167,7 @@ function send( req, res, json ) {
 	if (req.query.asarray) {
 		json = Object.keys( json ).map(i => json[ i ]);
 	}
-
+console.log(json);
 	res.end( JSON.stringify( json, null, "\t" ) + "\n" );
 }
 

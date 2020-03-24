@@ -1,6 +1,5 @@
 class Datapoint {
 	constructor( json ){
-		console.log(json);
 		this.role        = json.role;
 		this.id          = json.id;
 
@@ -16,13 +15,20 @@ class Datapoint {
 			get: ()=>location
 		});
 	}
+
+	toJSON( json ) {
+		json = json || {};
+		for (var k of ['role','id','name','summary','description','radius','location']) {
+			json[k] = this[k];
+		}
+
+		return json;
+	}
 }
 
 function idToLocation( id ) {
 	var location = id.split( ";" );
-	location.lat = location[0];
-	location.lon = location[1];
-	return location;
+	return { lat: parseFloat( location[0] ), lon: parseFloat( location[1] ) };
 }
 
 module.exports = Datapoint;

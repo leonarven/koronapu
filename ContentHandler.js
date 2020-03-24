@@ -136,7 +136,7 @@ class ContentHandler {
 				
 					this.getDatapoints({
 						id: dp.id
-					}).then( resolve ).catch( reject );
+					}).then(datapoints => resolve( datapoints[ dp.id ])).catch( reject );
 				});
 			} catch (e) { reject(e) };
 		});
