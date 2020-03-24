@@ -3,7 +3,7 @@ const Role      = require( "./Role" );
 const sqlite3   = require( "sqlite3" ).verbose();
 
 function alustaDB( db ) {
-	return Promise.resolve([{"role":"infected","nick":"sick90","description":"Tarvin suklaata","id":"61.491151,23.761025","location":[61.491151,23.761025],"radius":200},{"role":"infected","nick":"kipee","description":"voisko joku käydä apteekissa","id":"61.496151,23.791025","location":[61.496151,23.791025],"radius":400},{"role":"infected","nick":"koiraihminen","description":"voiko joku lenkittää mun koiraa välillä","id":"61.492151,23.815025","location":[61.492151,23.815025],"radius":2000},{"role":"helpers","nick":"testi2000","description":"haluan tietää olenko muiden päällä","id":"61.492151,23.761025","location":[61.492151,23.761025],"radius":1500},{"role":"helpers","nick":"kuski","description":"Mulla on auto","id":"61.468151,23.767025","location":[61.468151,23.767025],"radius":1000},{"role":"helpers","nick":"helpr89","description":"Voin auttaa mm. kauppareissuja tekemällä","id":"61.498151,23.761025","location":[61.498151,23.761025],"radius":500}]).then( arr => {
+	return Promise.resolve([{"role":"infected","name":"sick90","description":"Tarvin suklaata","id":"61.491151;23.761025","radius":200},{"role":"infected","name":"kipee","description":"voisko joku käydä apteekissa","id":"61.496151;23.791025","radius":400},{"role":"infected","name":"koiraihminen","description":"voiko joku lenkittää mun koiraa välillä","id":"61.492151;23.815025","radius":2000},{"role":"helpers","name":"testi2000","description":"haluan tietää olenko muiden päällä","id":"61.492151;23.761025","radius":1500},{"role":"helpers","name":"kuski","description":"Mulla on auto","id":"61.468151;23.767025","radius":1000},{"role":"helpers","name":"helpr89","description":"Voin auttaa mm. kauppareissuja tekemällä","id":"61.498151;23.761025","radius":500}]).then( arr => {
 		return Promise.all( arr.map( dp => {
 			return db.postDatapoint( dp ).catch( err => console.error( "alustaDB :: Failed to alusting:", dp, err ));
 		}));
@@ -11,6 +11,8 @@ function alustaDB( db ) {
 		console.error( "alustaDB :: Failed to alusting:", err );
 	});
 }
+
+var columns = "id,passhash,role,name,summary,radius".split( "," );
 
 class DBHandler {
 	constructor( config ) {
@@ -56,18 +58,27 @@ class DBHandler {
 
 	get( table, where ) {
 		var sql   = "SELECT * FROM " + table;
-		var attrs = { };
+		var attrs = { }, wheres = [];
 
 		return new Promise(( resolve, reject ) => {
 			if (where) {
-				if (table == "datapoints") for (var k of [ 'id', 'role', 'name', 'description', 'radius' ]) if (where[k]) attrs["$"+k] = where[k];
+				if (table == "datapoints") {
+					for (var k of columns) {
+						console.log(k);
+						if (where[k]) {
+							wheres.push( k + " = $" + k );
+							attrs["$"+k] = where[k];
+						}
+					}
+				}
+			}
+
+			if (wheres.length > 0) {
+				sql += " WHERE " + wheres.join( " AND " );
 			}
 
 			console.log( "DBHandler.get() ::", sql, attrs );
-			this.db.all( sql, attrs, ( err, rows ) => {
-				if (err) reject( err );
-				else resolve( rows );
-			});
+			this.db.all( sql, attrs, ( err, rows ) => (err ? reject( err ) : resolve( rows )));
 		}).then(function( rows ){
 			return rows;
 		}).catch(err => {
@@ -97,14 +108,6 @@ class ContentHandler {
 	reload() {
 		this.datapoints = {};
 		this.roles      = {};
-/*
-		
-		require( "./datapoints.json" ).forEach(dp => {
-			this.datapoints[ dp.id ] = new Datapoint( dp );
-	
-			this.roles[ dp.role ] = this.roles[ dp.role ] || new Role();
-			this.roles[ dp.role ].push( dp );
-		});*/
 	}
 
 	getDatapoints( where ) {
@@ -125,10 +128,10 @@ class ContentHandler {
 			try {
 				if (!(dp instanceof Datapoint)) dp = new Datapoint( dp );
 
-				var attrs = [ dp.id, '', dp.role, dp.nick, dp.description, dp.radius ];
+				var attrs = [ dp.id, '', dp.role, dp.name, dp.summary, dp.description, dp.radius ];
 
 				this.db.db.run( `
-					INSERT INTO datapoints ( id, passhash, role, name, description, radius ) VALUES ( ?, ?, ?, ?, ?, ? );
+					INSERT INTO datapoints ( id, passhash, role, name, summary, description, radius ) VALUES ( ?, ?, ?, ?, ?, ?, ? );
 				`, attrs, err => {
 					if (err) return reject( err );
 				

@@ -45,13 +45,13 @@ contentHandler.init().then(() => {
 
 /************************/
 
-router.use( "/helpers.json",  (req, res, next) => { req.query.type = "helpers";  next(); });
-router.use( "/infected.json", (req, res, next) => { req.query.type = "infected"; next(); });
+router.use( "/helpers.json",  (req, res, next) => { req.query.role = "helpers";  next(); });
+router.use( "/infected.json", (req, res, next) => { req.query.role = "infected"; next(); });
 
-router.get([ "/datapoints.json", "/helpers.json", "infected.json" ], (req, res) => {
+router.get([ "/datapoints.json", "/helpers.json", "/infected.json" ], (req, res) => {
 
 	var where = {};
-	if (req.query.type) where.type = req.query.type;
+	if (req.query.role) where.role = req.query.role;
 
 	contentHandler.getDatapoints( where ).then( json => {
 		send( req, res, json );
@@ -66,11 +66,11 @@ router.post([ "/datapoints.json", "/helpers.json", "infected.json" ], (req, res)
 	new Promise(( resolve, reject) => {
 		var body = req.body || {};
 
-		if (req.query.type) {
-			if (body.type) {
-				if (body.type != req.query.type) throw "Invalid argument :: body.type must be exact the ?type=";
+		if (req.query.role) {
+			if (body.role) {
+				if (body.role != req.query.role) throw "Invalid argument :: body.role must be exact the ?role=";
 			} else {
-				body.type = req.query.type;
+				body.role = req.query.role;
 			}
 		}
 
