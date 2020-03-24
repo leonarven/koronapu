@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS datapoints (
 	summary     text NOT NULL,
 	description text NOT NULL DEFAULT '',
 	radius      integer,
-	created_at  text NOT NULL DEFAULT (date('now')),
-	updated_at  text NOT NULL DEFAULT (date('now')),
+	created_at  text NOT NULL DEFAULT (datetime('now')),
+	updated_at  text NOT NULL DEFAULT (datetime('now')),
 	deleted_at  text
 );

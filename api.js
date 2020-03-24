@@ -1,15 +1,34 @@
 const express        = require( "express" );
 const router         = new express.Router();
 
-const Datapoint      = require( "./Datapoint" );
-const Role           = require( "./Role" );
+const Datapoint      = require( "./Datapoint"      );
+const Role           = require( "./Role"           );
 const ContentHandler = require( "./ContentHandler" );
+const AuthHandler    = require( "./AuthHandler"    );
 
 const ROLES = [ 'infected', 'helpers' ];
 
 const { invalidArgument, badRequest } = require( './errors.js' );
 
-var contentHandler, config;
+/************************/
+
+var contentHandler, authHandler, config;
+
+module.exports = {
+	init: _config => {
+		config = _config;
+
+		authHandler = new AuthHandler( config );
+		
+		console.log( "SYSTEM :: Initiating contentHandler ..." );
+
+		contentHandler = new ContentHandler( config );
+
+		return contentHandler.init().then(() => {
+			console.log( "SYSTEM :: Initiating contentHandler ... READY!" );
+		});
+	}, router, authHandler
+};
 
 /************************/
 
@@ -105,7 +124,7 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 
 		var dp = new Datapoint( body );
 
-		return contentHandler.postDatapoint( dp ).then( result => {
+		return contentHandler.createDatapoint( dp ).then( result => {
 			send( req, res, result.toJSON() );
 		}).catch( err => {
 			if (err.code == 'SQLITE_CONSTRAINT') {
@@ -125,7 +144,34 @@ router.post([ "/datapoints.json(/:id)?", "/infected.json" ], (req, res) => {
 	}).then( dp => {
 		if (!dp) throw new badRequest( "datapoint not found" );
 
+		var body = req.body, data = {};
+	
+		if (typeof body.name == "string")
+			data.name = body.name;
+		else if (typeof body.name != "undefined")
+			throw new invalidArgument( "body.name must be typeof string" );
 
+		
+		if (typeof body.summary == "string")
+			data.summary = body.summary;
+		else if (typeof body.summary != "undefined")
+			throw new invalidArgument( "body.summary must be typeof string" );
+
+
+		if (typeof body.description == "string")
+			data.description = body.description;
+		else if (typeof body.description != "undefined")
+			throw new invalidArgument( "body.description must be typeof string" );
+
+
+		if (typeof body.radius == "number")
+			data.radius = body.radius;
+		else if (typeof body.radius != "undefined")
+			throw new invalidArgument( "body.radius must be typeof number" );
+
+
+		return contentHandler.updateDatapoint( dp.id, data );
+	}).then( dp => {
 		send( req, res, dp.toJSON() );
 	}).catch( err => {
 		sendErr( req, res, err );
@@ -133,18 +179,6 @@ router.post([ "/datapoints.json(/:id)?", "/infected.json" ], (req, res) => {
 });
 
 /*********************************/
-
-function init( _config ) {
-	config = _config;
-
-	console.log( "SYSTEM :: Initiating contentHandler ..." );
-
-	contentHandler = new ContentHandler( config );
-
-	return contentHandler.init().then(() => {
-		console.log( "SYSTEM :: Initiating contentHandler ... READY!" );
-	});
-}
 
 function sendErr( req, res, err, status ) {
 
@@ -184,7 +218,3 @@ function send( req, res, json ) {
 
 	res.end( JSON.stringify( json, null, "\t" ) + "\n" );
 }
-
-/*********************************/
-
-module.exports = { router, init };

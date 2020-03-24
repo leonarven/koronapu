@@ -8,6 +8,9 @@ class Datapoint {
 		this.description = json.description;
 		this.radius      = json.radius;
 
+		this.updated_at  = json.updated_at;
+		this.created_at  = json.created_at;
+
 		// passhash ei kuulu tänne, sitä käsitellään vain autentikaation yhteydessä
 
 		var location = idToLocation( this.id );
@@ -18,7 +21,7 @@ class Datapoint {
 
 	toJSON( json ) {
 		json = json || {};
-		for (var k of ['role','id','name','summary','description','radius','location']) {
+		for (var k of ['role','id','name','summary','description','radius','location','updated_at','created_at']) {
 			json[k] = this[k];
 		}
 

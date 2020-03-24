@@ -5,16 +5,16 @@ const Role      = require( "./Role" );
 const sqlite3   = require( "sqlite3" ).verbose();
 
 function alustaDB( db ) {
-	return Promise.resolve([{"role":"infected","name":"sick90","description":"Tarvin suklaata","id":"61.491151;23.761025","radius":200},{"role":"infected","name":"kipee","description":"voisko joku käydä apteekissa","id":"61.496151;23.791025","radius":400},{"role":"infected","name":"koiraihminen","description":"voiko joku lenkittää mun koiraa välillä","id":"61.492151;23.815025","radius":2000},{"role":"helpers","name":"testi2000","description":"haluan tietää olenko muiden päällä","id":"61.492151;23.761025","radius":1500},{"role":"helpers","name":"kuski","description":"Mulla on auto","id":"61.468151;23.767025","radius":1000},{"role":"helpers","name":"helpr89","description":"Voin auttaa mm. kauppareissuja tekemällä","id":"61.498151;23.761025","radius":500}]).then( arr => {
+	return Promise.resolve([{"role":"infected","name":"sick90","summary":"Tarvin suklaata","id":"61.491151;23.761025","radius":200},{"role":"infected","name":"kipee","summary":"voisko joku käydä apteekissa","id":"61.496151;23.791025","radius":400},{"role":"infected","name":"koiraihminen","summary":"voiko joku lenkittää mun koiraa välillä","id":"61.492151;23.815025","radius":2000},{"role":"helpers","name":"testi2000","summary":"haluan tietää olenko muiden päällä","id":"61.492151;23.761025","radius":1500},{"role":"helpers","name":"kuski","summary":"Mulla on auto","id":"61.468151;23.767025","radius":1000},{"role":"helpers","name":"helpr89","summary":"Voin auttaa mm. kauppareissuja tekemällä","id":"61.498151;23.761025","radius":500}]).then( arr => {
 		return Promise.all( arr.map( dp => {
-			return db.postDatapoint( dp ).catch( err => console.error( "alustaDB :: Failed to alusting:", dp, err ));
+			return db.createDatapoint( dp ).catch( err => console.error( "alustaDB :: Failed to alusting:", dp, err ));
 		}));
 	}).catch( err => {
 		console.error( "alustaDB :: Failed to alusting:", err );
 	});
 }
 
-var columns = "id,passhash,role,name,summary,radius".split( "," );
+var columns = "id,passhash,role,name,summary,description,radius".split( "," );
 
 class DBHandler {
 	constructor( config ) {
@@ -51,7 +51,7 @@ class DBHandler {
 				if (table == "datapoints") {
 					for (var k of columns) {
 						if (where[k]) {
-							wheres.push( k + " = $" + k );
+							wheres.push( k + "=$" + k );
 							attrs["$"+k] = where[k];
 						}
 					}
@@ -98,6 +98,7 @@ class ContentHandler {
 	getDatapoints( where ) {
 		return this.db.get( "datapoints", where ).then(rows=>{
 			var dps = {};
+			
 			rows.forEach(dp => {
 				try {
 					dp = new Datapoint( dp );
@@ -108,12 +109,12 @@ class ContentHandler {
 		});
 	}
 
-	postDatapoint( dp ) {
+	createDatapoint( dp ) {
 		return new Promise(( resolve, reject ) => {
 			try {
 				if (!(dp instanceof Datapoint)) dp = new Datapoint( dp );
 
-				var attrs = [ dp.id, '', dp.role, dp.name, dp.summary, dp.description, dp.radius ];
+				var attrs = [ dp.id, '', dp.role, dp.name, dp.summary, dp.description || '', dp.radius ];
 
 				this.db.db.run( `
 					INSERT INTO datapoints ( id, passhash, role, name, summary, description, radius ) VALUES ( ?, ?, ?, ?, ?, ?, ? );
@@ -123,6 +124,31 @@ class ContentHandler {
 					this.getDatapoints({
 						id: dp.id
 					}).then(datapoints => resolve( datapoints[ dp.id ])).catch( reject );
+				});
+			} catch (e) { reject(e) };
+		});
+	}
+
+	updateDatapoint( id, data ) {
+		return new Promise(( resolve, reject ) => {
+			try {
+
+				var attrs = { $id: id }, sql = "UPDATE datapoints SET updated_at=(datetime('now'))";
+
+				for (var key of ['role','name','summary','description','radius']) {
+					if (typeof data[key] == "undefined") continue;
+
+					attrs[ "$"+key ] = data[ key ];
+					sql += ", " + key + "=$" + key;
+				}
+
+				sql += " WHERE id=$id;";
+
+				console.log( "ContentHandler.updateDatapoint() ::", sql, attrs );
+				this.db.db.run( sql, attrs, err => {
+					if (err) return reject( err );
+				
+					this.getDatapoints({ id }).then(datapoints => resolve( datapoints[ id ])).catch( reject );
 				});
 			} catch (e) { reject(e) };
 		});
