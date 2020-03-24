@@ -1,6 +1,10 @@
 # koronapu
 Location based platform (API) for asking ang giving help and for solidarity.
 
+### Asennus
+
+`npm i`
+
 ### Käyttö
 
 `node main.js`
@@ -13,7 +17,8 @@ Location based platform (API) for asking ang giving help and for solidarity.
 	},
 	"database": {
 		"sqlite3": {
-			"file": "./database.db"
+			"file"        : "./database.db",
+			"sqlite_file" : "./schema.sqlite"
 		}
 	},
 	"static": {

@@ -16,11 +16,14 @@ var contentHandler, config;
 router.use( "/helpers.json",  (req, res, next) => { req.query.role = "helpers";  next(); });
 router.use( "/infected.json", (req, res, next) => { req.query.role = "infected"; next(); });
 
-router.get([ "/datapoints.json", "/helpers.json", "/infected.json" ], (req, res) => {
+router.get([ "/datapoints.json(/:id)?", "/helpers.json", "/infected.json" ], (req, res) => {
 
 	var where = {};
 	if (req.query.role) where.role = req.query.role;
 
+	if (req.query.id)   where.id = req.query.id;
+	if (req.params.id)  where.id = req.params.id;
+	
 	contentHandler.getDatapoints( where ).then( datapoints => {
 		var result = {};
 
@@ -33,7 +36,6 @@ router.get([ "/datapoints.json", "/helpers.json", "/infected.json" ], (req, res)
 		send( req, res, err );
 	});
 });
-
 
 // Uuden luominen
 router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
@@ -114,6 +116,22 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 	}).catch(err => sendErr( req, res, err ));
 });
 
+router.post([ "/datapoints.json(/:id)?", "/infected.json" ], (req, res) => {
+	var dp = null;
+	Promise.resolve( req.query.id || req.params.id ).then( id => {
+		if (typeof id != "string") throw new badRequest( "id required" );
+	
+		return contentHandler.getDatapoints({ id }).then( dps => (dp = dps[id]));
+	}).then( dp => {
+		if (!dp) throw new badRequest( "datapoint not found" );
+
+
+		send( req, res, dp.toJSON() );
+	}).catch( err => {
+		sendErr( req, res, err );
+	});
+});
+
 /*********************************/
 
 function init( _config ) {
@@ -161,8 +179,6 @@ function send( req, res, json ) {
 	if (req.query.asarray) {
 		json = Object.keys( json ).map(i => json[ i ]);
 	}
-
-	console.log(json);
 
 	res.setHeader("Content-Type", "application/json; charset=utf-8");
 
