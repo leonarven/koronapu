@@ -2,7 +2,18 @@
 	var { log, error } = console;
 	console.log   = function(){   log.bind( null, (new Date()).toLocaleString(), "::" ).apply( null, arguments ); }
 	console.error = function(){ error.bind( null, (new Date()).toLocaleString(), ":: \[\033[31mERROR\033[0m\] ::" ).apply( null, arguments ); }
-})()
+})();
+
+class badRequest extends Error {
+	constructor( message ) {
+		super( message );
+	}
+}
+class invalidArgument extends badRequest {
+	constructor( message ) {
+		super( "Invalid argument :: " + message );
+	}
+}
 
 const express        = require( "express" );
 const bodyParser     = require( "body-parser" );
@@ -62,21 +73,52 @@ router.get([ "/datapoints.json", "/helpers.json", "/infected.json" ], (req, res)
 	});
 });
 
-router.post([ "/datapoints.json", "/helpers.json", "infected.json" ], (req, res) => {
+
+// Uuden luominen
+router.post([ "/helpers.json", "infected.json" ], (req, res) => {
 	new Promise(( resolve, reject) => {
-		var body = req.body || {};
+		try {
+			var body = req.body || {};
 
-		if (req.query.role) {
-			if (body.role) {
-				if (body.role != req.query.role) throw "Invalid argument :: body.role must be exact the ?role=";
-			} else {
-				body.role = req.query.role;
+			if (req.query.role) {
+				if (body.role) {
+					if (body.role != req.query.role) throw "Invalid argument :: body.role must be exact the ?role=";
+				} else {
+					body.role = req.query.role;
+				}
 			}
-		}
 
-		resolve( body );
+			if (typeof body.id != "undefined")       throw new InvalidArgument( "Invalid argument :: body.role is disallowed on create" );
+			
+	
+			if (typeof body.name != "string")        throw new invalidArgument( "body.name is required and must be typeof string" );
+
+			
+			if (typeof body.summary != "string")     throw new invalidArgument( "body.summary is required and must be typeof string" );
+			
+			
+			if (body.radius != null && typeof body.summary != "radius")
+				throw new invalidArgument( "body.radius must be typeof number" );
+
+
+			if (typeof body.location == "undefined") throw new InvalidArgument( "body.location is required on create" );
+
+			if (!Array.isArray( body.location ))     throw new InvalidArgument( "body.location must be array" );
+			
+			if (body.location.length != 2)           throw new InvalidArgument( "body.location must be .length==2 array" );
+
+			body.id = body.location.join( ";" );
+
+
+			resolve( body );
+		} catch(e) {
+			reject(e);
+		}
 	}).then(body => {
-		return contentHandler.postDatapoint( body ).then( result => {
+
+		var dp = new Datapoint( body );
+
+		return contentHandler.postDatapoint( dp ).then( result => {
 			send( req, res, result );
 		});
 	}).catch( err => sendErr( req, res, err ));
@@ -84,11 +126,12 @@ router.post([ "/datapoints.json", "/helpers.json", "infected.json" ], (req, res)
 
 
 function sendErr( req, res, err, status ) {
-	res.status( status = status || 500 );
 
 	if (typeof err == "string") err = new Error( err );
-	
-	console.error( "ERROR :: ", status, "::", err );
+
+	if (err instanceof badRequest) {
+		status = 400;
+	}
 
 	if (err instanceof Error) {
 		// Lopputulos olisi muuten näennäisesti tyhjä taulukko, joten autetaan vähän
@@ -96,10 +139,14 @@ function sendErr( req, res, err, status ) {
 		err = {
 			err     : err, 
 			message : err.toString(),
-			stack   : err.stack.split( "\n" ).map(v => v.trim( )),
+			stack   : err.stack && err.stack.split( "\n" ).map(v => v.trim( )),
 			status  : status
 		};
 	}
+
+	res.status( status = status || 500 );
+
+	console.error( "ERROR :: ", status, "::", err );
 
 	send( req, res, err );
 }
