@@ -163,7 +163,9 @@ function send( req, res, json ) {
 	}
 
 	console.log(json);
-	
+
+	res.setHeader("Content-Type", "application/json; charset=utf-8");
+
 	res.end( JSON.stringify( json, null, "\t" ) + "\n" );
 }
 
