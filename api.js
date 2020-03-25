@@ -98,18 +98,8 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 					throw new invalidArgument( "body.radius must be typeof number" );
 			}
 			
-			if (body["location[]"][0] != "" && body["location[]"][1] != "" ) {
-			
+			if (body["location[]"][0] != "" && body["location[]"][1] != "" ) {			
 				body.location = [parseFloat(body["location[]"][0]), parseFloat(body["location[]"][1])];
-				
-				if (!Array.isArray( body.location )) {
-					if (body.location[0] && body.location[1]) {
-						console.log("ITS array");
-						body.location = [body.location[0], body.location[1]];
-					} else {
-						throw new invalidArgument( "body.location must be array or object" );
-					}
-				}
 			} else {
 				throw new invalidArgument( "body.location is required and must be array or object" );
 			}
