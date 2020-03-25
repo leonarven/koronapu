@@ -8,6 +8,7 @@
 
 const express        = require( "express" );
 const bodyParser     = require( "body-parser" );
+const cors           = require('cors')
 
 const Datapoint      = require( "./Datapoint" );
 const Role           = require( "./Role" );
@@ -23,6 +24,7 @@ console.log( "SYSTEM :: Initiating HTTP server ..." );
 
 const app = express();
 
+app.use(cors({credentials: true, origin: true}));
 app.use( bodyParser.urlencoded({ extended: false }));
 app.use( bodyParser.json( ));
 
