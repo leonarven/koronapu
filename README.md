@@ -18,7 +18,7 @@ Location based platform (API) for asking ang giving help and for solidarity.
 	"database": {
 		"sqlite3": {
 			"file"        : "./database.db",
-			"sqlite_file" : "./schema.sqlite"
+			"schema_file" : "./schema.sqlite"
 		}
 	},
 	"static": {
