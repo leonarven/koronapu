@@ -69,7 +69,9 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 					body.role = req.query.role;
 				}
 			}
-						
+			
+			console.log("BODY:\n  ", body);
+			
 			if (ROLES.indexOf( body.role ) == -1)
 				throw new invalidArgument( "body.role must be enum (helpers|infected)" );
 
@@ -95,15 +97,15 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 				if (isNaN( body.radius ))
 					throw new invalidArgument( "body.radius must be typeof number" );
 			}
-
-			if (body["location[lat]"] != ""  && body["location[lon]"] != "" ) {	
 			
-				console.log("BODY:\n  ", body);	 // FOR DEBUG	
-				body.location = [parseFloat(body["location[lat]"]), parseFloat(body["location[lon]"])];
+			if (body["location[]"][0] != "" && body["location[]"][1] != "" ) {
+			
+				body.location = [parseFloat(body["location[]"][0]), parseFloat(body["location[]"][1])];
 				
 				if (!Array.isArray( body.location )) {
-					if (body["location[lat]"] && body["location[lon]"]) {
-						body.location = [body["location[lat]"], body["location[lon]"]];
+					if (body.location[0] && body.location[1]) {
+						console.log("ITS array");
+						body.location = [body.location[0], body.location[1]];
 					} else {
 						throw new invalidArgument( "body.location must be array or object" );
 					}
