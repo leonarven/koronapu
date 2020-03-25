@@ -90,8 +90,11 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 				throw new invalidArgument( "body.description must be typeof string" );
 
 
-			if (body.radius != null && typeof body.radius != "number")
-				throw new invalidArgument( "body.radius must be typeof number" );
+			if (body.radius != null) {
+				body.radius = parseFloat( body.radius );
+				if (isNaN( body.radius ))
+					throw new invalidArgument( "body.radius must be typeof number" );
+			}
 
 
 			if (typeof body.location == "object") {
