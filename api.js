@@ -71,11 +71,11 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 			}
 
 			if (ROLES.indexOf( body.role ) == -1)
-				throw new InvalidArgument( "body.role must be enum (helpers|infected)" );
+				throw new invalidArgument( "body.role must be enum (helpers|infected)" );
 
 
 			if (typeof body.id != "undefined")
-				throw new InvalidArgument( "body.id is disallowed on create" );
+				throw new invalidArgument( "body.id is disallowed on create" );
 			
 	
 			if (typeof body.name != "string")
@@ -99,16 +99,16 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 					if (body.location.lan && body.location.lon) {
 						body.location = [ body.location.lan, body.location.lon ]; 
 					} else {
-						throw new InvalidArgument( "body.location must be array or object" );
+						throw new invalidArgument( "body.location must be array or object" );
 					}
 				}
 			} else {
-				throw new InvalidArgument( "body.location is required and must be array or object" );
+				throw new invalidArgument( "body.location is required and must be array or object" );
 			}
 			
-			if (body.location.length != 2)           throw new InvalidArgument( "body.location must be .length==2 array" );
-			if (typeof body.location[0] != "number") throw new InvalidArgument( "body.location[(0|lat)] must be typeof number" );
-			if (typeof body.location[1] != "number") throw new InvalidArgument( "body.location[(1|lon)] must be typeof number" );
+			if (body.location.length != 2)           throw new invalidArgument( "body.location must be .length==2 array" );
+			if (typeof body.location[0] != "number") throw new invalidArgument( "body.location[(0|lat)] must be typeof number" );
+			if (typeof body.location[1] != "number") throw new invalidArgument( "body.location[(1|lon)] must be typeof number" );
 
 
 
