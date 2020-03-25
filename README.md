@@ -31,3 +31,16 @@ Location based platform (API) for asking ang giving help and for solidarity.
 	}
 }
 ```
+
+### API
+
+#### GET `/api/datapoints.json` - Noutaa tietueita
+**Haun parametrit:** *id*, *role*
+`/api/helpers.json`  = `/api/datapoints.json?role=helpers`
+`/api/infected.json` = `/api/datapoints.json?role=infected`
+`/api/datapoints.json/{id}` = `/api/datapoints.json?id={id}`
+
+
+#### POST `/api/infected.json`, `/api/helpers.json` - Luo tietueita
+
+#### POST `/api/datapoints.json?id={id}`, `/api/datapoints.json/{id}` - Päivittää tietueen
