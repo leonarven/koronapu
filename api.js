@@ -101,10 +101,10 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 			if (body["location[]"][0] != "" && body["location[]"][1] != "" ) {			
 				body.location = [parseFloat(body["location[]"][0]), parseFloat(body["location[]"][1])];
 			} else {
-				throw new invalidArgument( "body.location is required and must be array or object" );
+				throw new invalidArgument( "body.location must be .length==2 array" );
 			}
 			
-			if (body.location.length != 2)           throw new invalidArgument( "body.location must be .length==2 array" );
+			//if (body.location.length != 2)           throw new invalidArgument( "body.location must be .length==2 array" );
 			if (typeof body.location[0] != "number") throw new invalidArgument( "body.location[(0|lat)] must be typeof number" );
 			if (typeof body.location[1] != "number") throw new invalidArgument( "body.location[(1|lon)] must be typeof number" );
 
