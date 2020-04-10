@@ -161,11 +161,12 @@ router.post([ "/datapoints.json(/:id)?", "/infected.json" ], (req, res) => {
 		else if (typeof body.description != "undefined")
 			throw new invalidArgument( "body.description must be typeof string" );
 
-
-		if (typeof body.radius == "number")
-			data.radius = body.radius;
-		else if (typeof body.radius != "undefined")
-			throw new invalidArgument( "body.radius must be typeof number" );
+		
+		if (typeof(parseFloat(body.radius)) == "number") {
+			data.radius = body.radius; // Its string. Not changing to number and keeping any leading zeros
+		} else {
+			throw new invalidArgument( "body.radius not valid");
+		};
 
 
 		return contentHandler.updateDatapoint( dp.id, data );
