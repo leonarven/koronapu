@@ -32,6 +32,13 @@ module.exports = {
 
 /************************/
 
+router.use((req, res, next) => {
+	if (false) {
+		req.user = {};
+	}
+	next();
+});
+
 router.use( "/helpers.json",  (req, res, next) => { req.query.role = "helpers";  next(); });
 router.use( "/infected.json", (req, res, next) => { req.query.role = "infected"; next(); });
 
@@ -138,7 +145,7 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 	}).catch(err => sendErr( req, res, err ));
 });
 
-router.post([ "/datapoints.json(/:id)?", "/infected.json" ], (req, res) => {
+router.post([ "/datapoints.json(/:id)?" ], loginRequired, (req, res) => {
 	var dp = null;
 	Promise.resolve( req.query.id || req.params.id ).then( id => {
 		if (typeof id != "string") throw new badRequest( "id required" );
@@ -181,11 +188,46 @@ router.post([ "/datapoints.json(/:id)?", "/infected.json" ], (req, res) => {
 	});
 });
 
+router.delete([ "/datapoints.json(/:id)?" ], loginRequired, (req, res) => {
+	var dp = null;
+	Promise.resolve( req.query.id || req.params.id ).then( id => {
+		if (typeof id != "string") throw new badRequest( "id required" );
+	
+		return contentHandler.getDatapoints({ id }).then( dps => (dp = dps[id]));
+	}).then( dp => {
+		if (!dp) throw new badRequest( "datapoint not found" );
+
+		return contentHandler.deleteDatapoint( dp.id );
+	}).then( dp => {
+		send( req, res, {} );
+	}).catch( err => {
+		sendErr( req, res, err );
+	});
+});
+
 /*********************************/
+
+function loginRequired( req, res, next ) {
+	if (!req.user) return sendErr( req, res, 403 );
+
+	next();
+}
 
 function sendErr( req, res, err, status ) {
 
+	const httpCodes = {
+		403: "Forbidden"
+	};
+
 	if (typeof err == "string") err = new Error( err );
+	
+	if (typeof err == "number") {
+		status = err;
+		err = {
+			err     : httpCodes[ status ] || err,
+			status  : status
+		};
+	}
 
 	if (err instanceof badRequest) {
 		status = 400;

@@ -153,6 +153,22 @@ class ContentHandler {
 			} catch (e) { reject(e) };
 		});
 	}
+
+	deleteDatapoint( id ) {
+		return new Promise(( resolve, reject ) => {
+			try {
+
+				var attrs = { $id: id }, sql = "DELETE FROM datapoints WHERE id=$id";
+
+				console.log( "ContentHandler.deleteDatapoint() ::", sql, attrs );
+				this.db.db.run( sql, attrs, err => {
+					if (err) return reject( err );
+				
+					this.getDatapoints({ id }).then(datapoints => resolve( datapoints[ id ])).catch( reject );
+				});
+			} catch (e) { reject(e) };
+		});
+	}
 }
 
 module.exports = ContentHandler;
