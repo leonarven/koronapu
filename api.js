@@ -153,27 +153,33 @@ router.post([ "/datapoints.json(/:id)?" ], loginRequired, (req, res) => {
 	
 		if (typeof body.name == "string")
 			data.name = body.name;
-		else if (typeof body.name != "undefined")
+		else if (typeof body.name !== "undefined")
 			throw new invalidArgument( "body.name must be typeof string" );
 
 		
 		if (typeof body.summary == "string")
 			data.summary = body.summary;
-		else if (typeof body.summary != "undefined")
+		else if (typeof body.summary !== "undefined")
 			throw new invalidArgument( "body.summary must be typeof string" );
 
 
 		if (typeof body.description == "string")
 			data.description = body.description;
-		else if (typeof body.description != "undefined")
+		else if (typeof body.description !== "undefined")
 			throw new invalidArgument( "body.description must be typeof string" );
 
 		
-		if (typeof(parseFloat(body.radius)) == "number") { // Its string
-			data.radius = parseFloat(body.radius); // Lets hope any rounding doesnt make problems here
-		} else {
-			throw new invalidArgument( "body.radius not valid");
-		};
+		if (typeof body.radius !== "undefined") {
+			var _radius = parseFloat( body.radius );
+
+			if (isNaN( _radius )) { // Is given value invalid number
+				throw new invalidArgument( "body.radius not valid");
+			} else {
+				data.radius = _radius;
+			}
+		}
+
+
 		return contentHandler.updateDatapoint( dp.id, data );
 	}).then( dp => {
 		send( req, res, dp.toJSON() );
