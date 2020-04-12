@@ -76,7 +76,9 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 					body.role = req.query.role;
 				}
 			}
-
+			
+			console.log("BODY:\n  ", body);
+			
 			if (ROLES.indexOf( body.role ) == -1)
 				throw new invalidArgument( "body.role must be enum (helpers|infected)" );
 
@@ -102,21 +104,14 @@ router.post([ "/helpers.json", "/infected.json" ], (req, res) => {
 				if (isNaN( body.radius ))
 					throw new invalidArgument( "body.radius must be typeof number" );
 			}
-
-
-			if (typeof body.location == "object") {
-				if (!Array.isArray( body.location )) {
-					if (body.location.lan && body.location.lon) {
-						body.location = [ body.location.lan, body.location.lon ]; 
-					} else {
-						throw new invalidArgument( "body.location must be array or object" );
-					}
-				}
+			
+			if (body["location[]"][0] != "" && body["location[]"][1] != "" ) {			
+				body.location = [parseFloat(body["location[]"][0]), parseFloat(body["location[]"][1])];
 			} else {
-				throw new invalidArgument( "body.location is required and must be array or object" );
+				throw new invalidArgument( "body.location must be .length==2 array" );
 			}
 			
-			if (body.location.length != 2)           throw new invalidArgument( "body.location must be .length==2 array" );
+			//if (body.location.length != 2)           throw new invalidArgument( "body.location must be .length==2 array" );
 			if (typeof body.location[0] != "number") throw new invalidArgument( "body.location[(0|lat)] must be typeof number" );
 			if (typeof body.location[1] != "number") throw new invalidArgument( "body.location[(1|lon)] must be typeof number" );
 
@@ -173,13 +168,12 @@ router.post([ "/datapoints.json(/:id)?" ], loginRequired, (req, res) => {
 		else if (typeof body.description != "undefined")
 			throw new invalidArgument( "body.description must be typeof string" );
 
-
-		if (typeof body.radius == "number")
-			data.radius = body.radius;
-		else if (typeof body.radius != "undefined")
-			throw new invalidArgument( "body.radius must be typeof number" );
-
-
+		
+		if (typeof(parseFloat(body.radius)) == "number") { // Its string
+			data.radius = parseFloat(body.radius); // Lets hope any rounding doesnt make problems here
+		} else {
+			throw new invalidArgument( "body.radius not valid");
+		};
 		return contentHandler.updateDatapoint( dp.id, data );
 	}).then( dp => {
 		send( req, res, dp.toJSON() );
