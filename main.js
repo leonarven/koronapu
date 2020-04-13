@@ -8,14 +8,14 @@
 
 const express        = require( "express" );
 const bodyParser     = require( "body-parser" );
-const cors           = require('cors')
+const cors           = require( "cors" );
+const fs             = require( "fs" );
+const https          = require( "https" );
 
 const Datapoint      = require( "./Datapoint" );
 const Role           = require( "./Role" );
 const ContentHandler = require( "./ContentHandler" );
-
 const config         = require( "./config.json" );
-
 const API            = require( "./api.js" );
 
 /************************/
@@ -23,8 +23,7 @@ const API            = require( "./api.js" );
 console.log( "SYSTEM :: Initiating HTTP server ..." );
 
 const app = express();
-
-app.use(cors({credentials: true, origin: true}));
+app.use( cors({credentials: true, origin: config.frontend.allowed_host}) );
 app.use( bodyParser.urlencoded({ extended: false }));
 app.use( bodyParser.json( ));
 
@@ -35,6 +34,15 @@ console.log( "SYSTEM :: Initiating API ..." );
 
 API.init( config ).then(() => {
 	console.log( "SYSTEM :: Initiating API ... READY!" );
+	
+	https.createServer({
+	  key: fs.readFileSync(config.https.cert_path + 'privkey1.pem'),
+	  cert: fs.readFileSync(config.https.cert_path + 'cert1.pem'),
+	  ca: fs.readFileSync(config.https.cert_path + 'chain1.pem')
+	}, app).listen(config.https.port, () => {
+		console.log( "SYSTEM :: Initiating HTTPS server ... READY!" );
+		console.log( "SYSTEM :: HTTPS server started, port", config.https.port);
+	})
 
 	app.listen( config.http.port, function(){
 		console.log( "SYSTEM :: Initiating HTTP server ... READY!" );

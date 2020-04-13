@@ -12,6 +12,13 @@ Location based platform (API) for asking ang giving help and for solidarity.
 ### Esimerkkinä config.json
 ```
 {
+	"frontend": {
+		"allowed_host": "https://yourserver.com"
+	},
+	"https": {
+		"cert_path": "/home/certhold/yourserver.com/",
+		"port"    : 9443
+	},
 	"http": {
 		"port": 8080
 	},
